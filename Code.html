@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in Mental Health Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles to enhance the design */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafe; /* Soft, calming background */
+        }
+        .sidebar {
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link.active {
+            background-color: #4f46e5; /* Indigo-600 */
+            color: white;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.4);
+        }
+        .page-content {
+            transition: opacity 0.4s ease-in-out;
+        }
+        .gauge-circle {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: conic-gradient(#4f46e5 0deg, #9ca3af var(--confidence, 0deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gauge-inner {
+            width: 85%;
+            height: 85%;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex">
+
+    <nav id="sidebar" class="sidebar w-64 h-full p-4 rounded-2xl hidden md:block self-start sticky top-4">
+        <div class="flex items-center space-x-2 p-2 mb-8 border-b pb-4">
+            <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v16l-12 3zm0 0v-4m0 4l-12-3V6l12 3m0 0v4m0-4l12-3M9 6h12M9 10h12M9 14h12M9 18h12"></path></svg>
+            <h1 class="text-xl font-extrabold text-gray-800">MindAI</h1>
+        </div>
+        <div class="space-y-2">
+            <a href="#home" class="nav-link active flex items-center space-x-3 p-3 rounded-xl transition-all duration-300" data-page="home">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-2 2m-7-7v10a1 1 0 001 1h3m10-11l-2 2"></path></svg>
+                <span class="font-medium">Home</span>
+            </a>
+            <a href="#results" class="nav-link flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 text-gray-600 hover:bg-blue-50 hover:text-indigo-600" data-page="results">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M20 10a8 8 0 10-16 0h16z"></path></svg>
+                <span class="font-medium">Results</span>
+            </a>
+            <a href="#graphs" class="nav-link flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 text-gray-600 hover:bg-blue-50 hover:text-indigo-600" data-page="graphs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.944 12H11V3.055z"></path></svg>
+                <span class="font-medium">Graphs</span>
+            </a>
+            <a href="#analysis" class="nav-link flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 text-gray-600 hover:bg-blue-50 hover:text-indigo-600" data-page="analysis">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span class="font-medium">Analysis</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 ml-4 md:ml-6">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-8 p-2">
+            AI in Mental Health Analysis Dashboard
+        </h1>
+
+        <div id="page-container">
+            </div>
+    </main>
+
+    <script>
+        // --- 1. Mock Data ---
+        const mockPrediction = {
+            status: 'Moderate', // Options: 'Healthy', 'Moderate', 'Critical'
+            confidence: 82, // Percentage
+            recommendation: 'You may be experiencing moderate stress. Prioritize 7-8 hours of sleep and introduce a 15-minute mindfulness break daily.',
+            featureContributions: [
+                { factor: 'Sleep Hours', contribution: 45, impact: 'High' },
+                { factor: 'Stress Level', contribution: 30, impact: 'High' },
+                { factor: 'Work Pressure', contribution: 15, impact: 'Medium' },
+                { factor: 'Gender/Age', contribution: 10, impact: 'Low' },
+            ],
+            insights: 'Insufficient sleep hours and self-reported high stress are the primary drivers for the "Moderate" mental health status prediction. Focus on improving these two key areas for a positive change.',
+        };
+
+        const getStatusColor = (status) => {
+            switch (status) {
+                case 'Healthy':
+                    return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-400', progress: '#34d399' };
+                case 'Moderate':
+                    return { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-400', progress: '#fbbf24' };
+                case 'Critical':
+                    return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-400', progress: '#f87171' };
+                default:
+                    return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-400', progress: '#9ca3af' };
+            }
+        };
+
+        const getColorByImpact = (impact) => {
+            if (impact === 'High') return '#ef4444'; // Red-500
+            if (impact === 'Medium') return '#f59e0b'; // Amber-500
+            return '#10b981'; // Emerald-500
+        };
+
+        // --- 2. Page Rendering Functions ---
+
+        // 🏠 1. Home Dashboard Page
+        function renderHome() {
+            const colors = getStatusColor(mockPrediction.status);
+            return `
+                <div class="page-content grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">User Input Form</h2>
+                        <form id="prediction-form" class="space-y-4">
+                            <div><label class="block text-sm font-medium text-gray-600">Age</label><input type="number" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 focus:ring-indigo-500 focus:border-indigo-500"></div>
+                            <div><label class="block text-sm font-medium text-gray-600">Sleep Hours (4-12)</label><input type="number" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 focus:ring-indigo-500 focus:border-indigo-500"></div>
+                            <div><label class="block text-sm font-medium text-gray-600">Stress Level (1-10)</label><input type="number" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 focus:ring-indigo-500 focus:border-indigo-500"></div>
+                            <div><label class="block text-sm font-medium text-gray-600">Work Pressure (1-5)</label><input type="number" required class="mt-1 block w-full rounded-lg border border-gray-300 p-3 focus:ring-indigo-500 focus:border-indigo-500"></div>
+                            
+                            <button type="submit" class="w-full py-3 bg-indigo-500 text-white font-bold rounded-xl shadow-md hover:bg-indigo-600 transition-all duration-300 mt-6">
+                                Predict Mental Health
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="md:col-span-1 space-y-6">
+                        <div class="p-6 rounded-xl shadow-lg ${colors.bg} border-l-4 ${colors.border}">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-2">Mental Health Status</h2>
+                            <p class="text-4xl font-extrabold ${colors.text} mb-3">${mockPrediction.status}</p>
+                            <div class="text-gray-700">
+                                <p class="text-sm font-medium">Confidence Score:</p>
+                                <p class="text-2xl font-bold">${mockPrediction.confidence}%</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Recommendation Summary</h3>
+                            <p class="text-gray-600 text-sm">${mockPrediction.recommendation}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 📊 2. Mental Health Results Page
+        function renderResults() {
+            const colors = getStatusColor(mockPrediction.status);
+            const degree = (mockPrediction.confidence / 100) * 360;
+            return `
+                <div class="page-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-white p-8 rounded-xl shadow-lg flex flex-col items-center">
+                        <div class="gauge-circle" style="--confidence: ${degree}deg; background: conic-gradient(${colors.progress} ${degree}deg, #e5e7eb ${degree}deg);">
+                            <div class="gauge-inner">
+                                <span class="text-3xl font-extrabold" style="color: ${colors.progress};">${mockPrediction.confidence}%</span>
+                                <span class="text-sm text-gray-500">Confidence</span>
+                            </div>
+                        </div>
+                        <p class="text-lg font-semibold text-gray-600 mt-6">Predicted Status</p>
+                        <h2 class="text-5xl font-extrabold ${colors.text} mb-6">${mockPrediction.status}</h2>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">
+                                Suggested Action Plan
+                            </h3>
+                            <p class="text-gray-600 leading-relaxed">${mockPrediction.recommendation}</p>
+                            <p class="mt-4 text-sm text-indigo-500 font-medium">Your well-being matters.</p>
+                        </div>
+
+                        <button onclick="alert('Downloading PDF report...')" class="flex items-center justify-center w-full py-3 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition-all duration-300">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download Detailed Report (PDF)
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 📈 3. Graph Visualization Page (Simplified)
+        function renderGraphs() {
+            const chartData = mockPrediction.featureContributions.map(f => {
+                const color = getColorByImpact(f.impact);
+                return `
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm font-medium mb-1">
+                            <span class="text-gray-700">${f.factor}</span>
+                            <span class="text-gray-900">${f.contribution}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="h-3 rounded-full" style="width: ${f.contribution}%; background-color: ${color};"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Impact: ${f.impact}</span>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="page-content grid grid-cols-1 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6 border-b pb-2">
+                            Feature Contribution Breakdown
+                        </h2>
+                        ${chartData}
+                        <p class="text-sm text-gray-500 mt-4">
+                            Visualizes the relative weight of each factor in determining your status.
+                        </p>
+                    </div>
+
+                    </div>
+            `;
+        }
+
+        // 🔍 4. Detailed Post-Analysis Page
+        function renderAnalysis() {
+            const chartData = mockPrediction.featureContributions.map(f => {
+                const color = getColorByImpact(f.impact);
+                return `
+                    <div class="mb-4 p-3 bg-gray-50 rounded-lg shadow-sm">
+                        <p class="text-sm font-semibold text-gray-800">${f.factor}</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                            <div class="h-2.5 rounded-full" style="width: ${f.contribution}%; background-color: ${color};"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 mt-1 block">Contributed: ${f.contribution}% - Impact: ${f.impact}</span>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="page-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg h-full">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Model Interpretability (Why the Prediction?)
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed">${mockPrediction.insights}</p>
+                        
+                        <h3 class="text-lg font-semibold text-gray-700 mt-6 border-t pt-4">Recommended Actions:</h3>
+                        <ul class="list-decimal list-inside text-gray-600 ml-4 space-y-1">
+                            <li>Prioritize 7-9 hours to sleep.</li>
+                            <li>Practice mindfulness breaks if needed.</li>
+                            <li>Limit work-related screen time after 8 PM.</li>
+                        </ul>
+                        <button onclick="alert('Saving report...')" class="mt-6 py-2 px-4 bg-indigo-500 text-white font-medium rounded-lg hover:bg-indigo-600 transition-all">Save Report</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg h-full">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 012 2v2m-2-2v2m0 2a2 2 0 002 2v2m-2-2V4m-2 2a2 2 0 01-2 2v2m2-2v2m0 2a2 2 0 00-2 2v2m-2-2V4m0 0h-2m2 0h2"></path></svg>
+                            Feature Contribution Breakdown
+                        </h2>
+                        ${chartData}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 3. Core Routing Logic ---
+
+        const routes = {
+            'home': renderHome,
+            'results': renderResults,
+            'graphs': renderGraphs,
+            'analysis': renderAnalysis
+        };
+
+        function navigate(page) {
+            const container = document.getElementById('page-container');
+            const links = document.querySelectorAll('.nav-link');
+
+            // Find and render the new content
+            const newContent = routes[page] ? routes[page]() : '<h1>404 Page Not Found</h1>';
+            container.innerHTML = newContent;
+
+            // Update active link styling
+            links.forEach(link => {
+                if (link.dataset.page === page) {
+                    link.classList.add('active');
+                    link.classList.remove('text-gray-600', 'hover:bg-blue-50', 'hover:text-indigo-600');
+                } else {
+                    link.classList.remove('active');
+                    link.classList.add('text-gray-600', 'hover:bg-blue-50', 'hover:text-indigo-600');
+                }
+            });
+        }
+
+        // --- 4. Initialization and Event Listeners ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial load based on hash or default to 'home'
+            const initialPage = window.location.hash.substring(1) || 'home';
+            navigate(initialPage);
+
+            // Setup navigation click listeners
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    window.history.pushState(null, '', `#${page}`); // Update URL hash
+                    navigate(page);
+                });
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('hashchange', () => {
+                const page = window.location.hash.substring(1) || 'home';
+                navigate(page);
+            });
+            
+            // Mock form submission
+            document.addEventListener('submit', function(e) {
+                if(e.target && e.target.id === 'prediction-form') {
+                    e.preventDefault();
+                    alert('Prediction submitted! Navigating to Results.');
+                    navigate('results');
+                    window.history.pushState(null, '', '#results');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
