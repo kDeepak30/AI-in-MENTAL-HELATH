@@ -236,6 +236,16 @@ Emotional fluctuations
 
 Graphs, prediction values, and interpretation are displayed on the dashboard.
 
+Social media posts:
+
+Youtube: https://youtu.be/C5WKkw6nWmQ
+
+LinkedIn: https://www.linkedin.com/feed/update/urn:li:ugcPost:7396599614809874433/
+
+Blog: https://github.com/kDeepak30/AI-in-MENTAL-HELATH
+
+View all the above links for more detailed info.
+
 
 
 
